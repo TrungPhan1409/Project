@@ -1,0 +1,277 @@
+import java.io.*;
+import java.security.Permission;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+public final class ManageComputers {
+
+    private static final String DATADIRLOCATION = "data/";
+
+    private static final Scanner in = new Scanner(System.in);
+
+    private ManageComputers() {
+        throw new AssertionError("Cannot instantiate this class");
+    }
+
+    public static void main(String[] args) {
+        SecurityManager securityManager = System.getSecurityManager();
+        if (securityManager == null) {
+            System.out.println("No SecurityManager available, application stopping!!");
+            System.exit(1);
+        }
+
+        try {
+            securityManager.checkPermission(new FilePermission(DATADIRLOCATION, "read,write,delete"));
+        } catch (SecurityException e) {
+            System.out.println("*** ERROR: access denied ***");
+            System.exit(1);
+        }
+
+        List<BaseComputer> allList = new ArrayList<>();
+        try {
+            for (int i = 1; i <= 10; i++) {
+                FileInputStream fin = new FileInputStream(DATADIRLOCATION + i + ".txt");
+                ObjectInputStream ois = new ObjectInputStream(fin);
+                BaseComputer computer = (BaseComputer) ois.readObject();
+                allList.add(computer);
+                ois.close();
+            }
+        } catch (IOException | ClassNotFoundException e) {
+            System.out.println("*** ERROR: " + e.getMessage() + " ***");
+            System.exit(1);
+        }
+
+        while (true) {
+            System.out.println("1. Add computer");
+            System.out.println("2. Delete computer");
+            System.out.println("3. Edit computer");
+            System.out.println("4. Exit");
+            System.out.println("Enter your choice: ");
+            int choice = in.nextInt();
+
+            switch (choice) {
+                case 1:
+                    addComputer(allList);
+                    break;
+                case 2:
+                    deleteComputer(allList);
+                    break;
+                case 3:
+                    editComputer(allList);
+                    break;
+                case 4:
+                    System.exit(0);
+                default:
+                    System.out.println("Invalid choice");
+            }
+        }
+    }
+
+    private static void addComputer(List<BaseComputer> allList) {
+        System.out.println("ADD COMPUTER");
+        System.out.println("Enter type of computer (1 for desktop, 2 for laptop): ");
+        int type = in.nextInt();
+
+        BaseComputer computer;
+        if (type == 1) {
+            computer = DesktopComputer.getInstance();
+        } else if (type == 2) {
+            computer = LaptopComputer.getInstance();
+        } else {
+            System.out.println("Invalid type");
+            return;
+        }
+
+        computer.readInput();
+        allList.add(computer);
+
+        try {
+            FileOutputStream fout = new FileOutputStream(DATADIRLOCATION + allList.size() + ".txt");
+            ObjectOutputStream oos = new ObjectOutputStream(fout);
+            oos.writeObject(computer);
+            oos.close();
+        } catch (IOException e) {
+            System.out.println("*** ERROR: " + e.getMessage() + " ***");
+        }
+    }
+
+    private static void deleteComputer(List<BaseComputer> allList) {
+        System.out.println("DELETE COMPUTER");
+        System.out.println("Enter number of computer to delete: ");
+        int option = in.nextInt();
+
+        if (option > 0 && option <= allList.size()) {
+            allList.remove(option - 1);
+
+            for (int i = option; i <= allList.size(); i++) {
+                File oldFile = new File(DATADIRLOCATION + (i + 1) + ".txt");
+                File newFile = new File(DATADIRLOCATION + i + ".txt");
+                oldFile.renameTo(newFile);
+            }
+
+            File lastFile = new File(DATADIRLOCATION + (allList.size() + 1) + ".txt");
+            lastFile.delete();
+
+            for (int i1 = 0; i1 < allList.size(); i1++) {
+                File myFile = new File(DATADIRLOCATION, (i1 + 1) + ".txt");
+                myFile.delete();
+            }
+
+            for (int i = 0; i < allList.size(); i++) {
+                try {
+                    FileOutputStream fout = new FileOutputStream(DATADIRLOCATION + (i + 1) + ".txt");
+                    ObjectOutputStream oos = new ObjectOutputStream(fout);
+                    oos.writeObject(allList.get(i));
+                    oos.close();
+                } catch (IOException e) {
+                    System.out.println("*** ERROR: " + e.getMessage() + " ***");
+                }
+            }
+        } else {
+            System.out.println("Invalid option");
+        }
+    }
+
+    private static void editComputer(List<BaseComputer> allList) {
+        System.out.println("EDIT COMPUTER");
+        System.out.println("Enter number of computer to edit: ");
+        int option = in.nextInt();
+
+        if (option > 0 && option <= allList.size()) {
+            BaseComputer computer = allList.get(option - 1);
+            computer.readInput();
+            allList.set(option - 1, computer);
+
+            try {
+                FileOutputStream fout = new FileOutputStream(DATADIRLOCATION + option + ".txt");
+                ObjectOutputStream oos = new ObjectOutputStream(fout);
+                oos.writeObject(computer);
+                oos.close();
+            } catch (IOException e) {
+                System.out.println("*** ERROR: " + e.getMessage() + " ***");
+            }
+        } else {
+            System.out.println("Invalid option");
+        }
+    }
+}
+
+public abstract class BaseComputer implements Serializable {
+
+    private static final long serialVersionUID = 1L;
+
+    private final String model;
+    private final int year;
+    private final String manufacturer;
+
+    public BaseComputer(String model, int year, String manufacturer) {
+        this.model = model;
+        this.year = year;
+        this.manufacturer = manufacturer;
+    }
+
+    public String getModel() {
+        return model;
+    }
+
+    public int getYear() {
+        return year;
+    }
+
+    public String getManufacturer() {
+        return manufacturer;
+    }
+
+    public abstract void readInput();
+}
+
+public final class DesktopComputer extends BaseComputer {
+
+    private static final long serialVersionUID = 1L;
+
+    private final String caseType;
+
+    private DesktopComputer(String model, int year, String manufacturer, String caseType) {
+        super(model, year, manufacturer);
+        this.caseType = caseType;
+    }
+
+    public static DesktopComputer getInstance() {
+        return new DesktopComputer("Unknown", 0, "Unknown", "Unknown");
+    }
+
+    public String getCaseType() {
+        return caseType;
+    }
+
+    @Override
+    public void readInput() {
+        Scanner in = new Scanner(System.in);
+        System.out.println("Enter model: ");
+        String model = in.nextLine();
+        System.out.println("Enter year: ");
+        int year = in.nextInt();
+        in.nextLine();
+        System.out.println("Enter manufacturer: ");
+        String manufacturer = in.nextLine();
+        System.out.println("Enter case type: ");
+        String caseType = in.nextLine();
+
+        // Validate input
+        if (model.isEmpty() || year < 0 || manufacturer.isEmpty() || caseType.isEmpty()) {
+            throw new IllegalArgumentException("Invalid input");
+        }
+
+        // Set values
+        this.model = model;
+        this.year = year;
+        this.manufacturer = manufacturer;
+        this.caseType = caseType;
+    }
+}
+
+public final class LaptopComputer extends BaseComputer {
+
+    private static final long serialVersionUID = 1L;
+
+    private final double screenSize;
+
+    private LaptopComputer(String model, int year, String manufacturer, double screenSize) {
+        super(model, year, manufacturer);
+        this.screenSize = screenSize;
+    }
+
+    public static LaptopComputer getInstance() {
+        return new LaptopComputer("Unknown", 0, "Unknown", 0.0);
+    }
+
+    public double getScreenSize() {
+        return screenSize;
+    }
+
+    @Override
+    public void readInput() {
+        Scanner in = new Scanner(System.in);
+        System.out.println("Enter model: ");
+        String model = in.nextLine();
+        System.out.println("Enter year: ");
+        int year = in.nextInt();
+        in.nextLine();
+        System.out.println("Enter manufacturer: ");
+        String manufacturer = in.nextLine();
+        System.out.println("Enter screen size: ");
+        double screenSize = in.nextDouble();
+
+        // Validate input
+        if (model.isEmpty() || year < 0 || manufacturer.isEmpty() || screenSize <= 0.0) {
+            throw new IllegalArgumentException("Invalid input");
+        }
+
+        // Set values
+        this.model = model;
+        this.year = year;
+        this.manufacturer = manufacturer;
+        this.screenSize = screenSize;
+    }
+}

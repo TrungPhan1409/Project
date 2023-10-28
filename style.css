@@ -1,0 +1,99 @@
+/* Import the font from Google Fonts */
+@import url('https://fonts.googleapis.com/css?family=Font+Name');
+
+*
+{
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box ;
+    font-family: 'Font Name', sans-serif;
+}
+/* Use the font in your CSS */
+body {
+    background-color: #5f6b61;
+}
+.logo 
+{
+    font-size: 25px;
+    color: #5E9DC8 ;
+    text-decoration: none;
+    font-weight: 600;
+}
+.header
+{
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    padding: 20px 10%;
+    background: #DCF0F7;
+    display: flex;
+    justify-content: space-between; 
+    align-items: center;
+    transition: 0.6s;
+}
+.navbar a
+{
+    margin: 0 5px;
+    padding: 8px 15px;
+    text-decoration: none;
+    color: #5E9DC8;
+    text-transform: uppercase;
+    font-size: 14px;
+    letter-spacing: 1px;
+    font-weight: bold;
+    transition: 0.6s;
+}
+.navbar a:hover
+{
+    background: #fff;
+    color: #0C2C52;
+    border-radius: 25px;
+}
+.home {
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    padding: 0 10%;
+}
+.home-content{
+    max-width: 600px;
+
+}
+.home-content h1{
+ font-size: 56px;
+ font-weight: 700;   
+ color: wheat  ; 
+}
+.home-content h3{
+    font-size: 32px;
+    font-weight: 700;
+    color: #5E9DC8;
+}
+.home-content p{
+    font-size: 16px;
+}
+.home-content .btn {
+    width: 345px;
+    height: 60px;
+
+}
+.btn a{
+    width: 150px;
+    height: 100%;
+    background: #5E9DC8;
+    border: 2px solid #5E9DC8;
+    justify-content: center;
+    border-radius: 8px;
+    font-size: 16px;
+    color: #0C2C52;
+    text-decoration: none;
+    font-weight: 600;
+    letter-spacing: 1px;
+    overflow: hidden;
+}
+.btn a:hover{
+    background: #fff;
+    color: #0C2C52;
+    border-radius: 25px;
+}
